@@ -4,7 +4,7 @@ import softDeletePlugin, { SoftDeleteDocument } from './plugins/softDelete';
 export enum VehicleStatus {
   IDLE = 'IDLE',
   IN_TRANSIT = 'IN_TRANSIT',
-  MAINTENANCE = 'MAINTENANCE',
+  MAINTENANCE = 'MAINTENANCE'
 }
 
 export enum VehicleType {
@@ -16,6 +16,7 @@ export enum VehicleType {
 
 export interface IVehicle extends SoftDeleteDocument {
   ownerId: mongoose.Types.ObjectId;
+  driverId?: mongoose.Types.ObjectId;
   make: string;
   vehicleModel: string;
   registrationNumber: string;
@@ -29,6 +30,11 @@ const vehicleSchema = new Schema<IVehicle>(
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
+    },
+    driverId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
     },
     make: {
       type: String,

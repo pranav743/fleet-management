@@ -11,5 +11,6 @@ router.use(protect);
 router.post('/', restrictTo(UserRole.ADMIN), tripController.createTrip);
 router.get('/', restrictTo(UserRole.DRIVER), tripController.getTrips);
 router.patch('/:id', restrictTo(UserRole.DRIVER), tripController.updateTripStatus);
+router.delete('/:id', restrictTo(UserRole.ADMIN), tripController.cancelTrip);
 
 export default router;

@@ -17,7 +17,7 @@ export const signup = async (userData: Partial<IUser>) => {
     password: hashedPassword,
     role,
   });
-
+  console.log('New user created:', newUser.email);
   return newUser;
 };
 

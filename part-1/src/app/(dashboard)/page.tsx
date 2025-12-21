@@ -28,11 +28,8 @@ export default function DashboardRedirect() {
       case UserRole.CUSTOMER:
         router.push("/customer");
         break;
-      case UserRole.ADMIN:
-        router.push("/dashboard");
-        break;
       default:
-        router.push("/");
+        router.push("/login");
     }
   }, [session, status, router]);
 

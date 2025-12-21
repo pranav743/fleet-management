@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge, Box, Button, Heading, Table, Text, Spinner, Center } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { api } from "@/lib/api-client";
 import { Trip, Booking, Vehicle } from "@/types/api";
@@ -13,45 +13,47 @@ export default function DriverTripsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (session?.user?.accessToken) {
-      fetchTrips();
-    }
-  }, [session]);
-
-  const fetchTrips = async () => {
-    if (!session?.user?.accessToken) return;
+  const fetchTrips = useCallback(async () => {
+    if (!session?.accessToken) return;
     try {
       setLoading(true);
-      const response = await api.trips.getAssigned(session.user.accessToken);
+      const response = await api.trips.getAssigned(session.accessToken!);
       if (response.status === "success") {
         setTrips(response.data.trips);
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+      
+
       toaster.create({
         title: "Error fetching trips",
-        description: err.message,
+        description: err instanceof Error ? err.message : 'An error occurred',
         type: "error",
       });
     } finally {
       setLoading(false);
     }
-  };
+  }, [session?.accessToken]);
+
+  useEffect(() => {
+    if (session?.accessToken) {
+      fetchTrips();
+    }
+  }, [session?.accessToken, fetchTrips]);
 
   const handleStatusUpdate = async (tripId: string, newStatus: string) => {
-    if (!session?.user?.accessToken) return;
+    if (!session?.accessToken) return;
     try {
-      await api.trips.updateStatus(session.user.accessToken, tripId, newStatus);
+      await api.trips.updateStatus(session.accessToken, tripId, newStatus);
       fetchTrips(); // Refresh list
       toaster.create({
         title: "Trip updated",
         type: "success",
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       toaster.create({
         title: "Error updating trip",
-        description: err.message,
+        description: err instanceof Error ? err.message : 'An error occurred',
         type: "error",
       });
     }

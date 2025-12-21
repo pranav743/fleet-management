@@ -7,8 +7,13 @@ import { UserRole } from '../models/User';
 const router = express.Router();
 
 router.use(protect);
-router.use(restrictTo(UserRole.ADMIN));
 
-router.get('/dashboard', analyticsController.getDashboard);
+router.get('/dashboard', restrictTo(UserRole.ADMIN, UserRole.OWNER, UserRole.DRIVER), analyticsController.getDashboard);
+
+router.get('/top-owners', restrictTo(UserRole.ADMIN), analyticsController.getTopRevenueOwners);
+
+router.get('/top-vehicles', restrictTo(UserRole.ADMIN), analyticsController.getTopVehicles);
+
+router.get('/top-customers', restrictTo(UserRole.ADMIN), analyticsController.getTopCustomers);
 
 export default router;

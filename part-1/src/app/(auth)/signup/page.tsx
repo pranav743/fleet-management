@@ -6,13 +6,14 @@ import { useRouter } from "next/navigation";
 import {
   Box,
   Button,
-  Container,
   Heading,
   Input,
   Stack,
   Text,
   Link as ChakraLink,
   NativeSelect,
+  Flex,
+  VStack,
 } from "@chakra-ui/react";
 import { Field } from "@/components/ui/field";
 import { signupSchema, SignupFormData } from "@/schemas/auth";
@@ -55,15 +56,15 @@ export default function SignupPage() {
         description: "Please login with your credentials",
         type: "success",
       });
-      
+
       setTimeout(() => {
         router.push("/login");
       }, 1500);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
       toaster.create({
         title: "Registration failed",
-        description: error.message || "Please try again later",
+        description: error instanceof Error ? error.message : "Please try again later",
         type: "error",
       });
     } finally {
@@ -72,44 +73,145 @@ export default function SignupPage() {
   };
 
   return (
-    <Container maxW="md" py={10}>
+    <Flex
+      minH="100vh"
+      align="center"
+      justify="center"
+      bg="gray.50"
+      _dark={{ bg: "black" }}
+      p={4}
+    >
       <Toaster />
-      <Stack gap={8} align="center">
-        <Heading size="2xl">Sign Up</Heading>
-        <Box w="full" p={8} borderWidth={1} borderRadius="lg" boxShadow="lg">
+      <Box
+        w="full"
+        maxW="md"
+        bg="white"
+        _dark={{
+          bg: "gray.900",
+          borderColor: "gray.800",
+        }}
+        rounded="2xl"
+        shadow="xl"
+        p={{ base: 6, md: 10 }}
+        borderWidth="1px"
+        borderColor="gray.100"
+      >
+        <VStack gap={8} align="stretch">
+          <VStack gap={2} textAlign="center">
+            <Heading
+              size="3xl"
+              letterSpacing="tight"
+              _dark={{ color: "white" }}
+            >
+              Create Account
+            </Heading>
+            <Text
+              color="gray.500"
+              fontSize="md"
+              _dark={{ color: "gray.400" }}
+            >
+              Join us to manage your fleet efficiently
+            </Text>
+          </VStack>
+
           <form onSubmit={handleSubmit(onSubmit)}>
-            <Stack gap={4}>
-              <Field label="Email" invalid={!!errors.email} errorText={errors.email?.message}>
-                <Input {...register("email")} type="email" placeholder="Enter your email" />
+            <Stack gap={5}>
+              <Field
+                label="Email"
+                invalid={!!errors.email}
+                errorText={errors.email?.message}
+              >
+                <Input
+                  {...register("email")}
+                  size="lg"
+                  type="email"
+                  placeholder="name@example.com"
+                  variant="subtle"
+                  _dark={{
+                    bg: "gray.800",
+                    color: "white",
+                    borderColor: "transparent",
+                    _focus: { borderColor: "blue.500", bg: "gray.800" },
+                    _placeholder: { color: "gray.500" },
+                  }}
+                />
               </Field>
 
-              <Field label="Password" invalid={!!errors.password} errorText={errors.password?.message}>
-                <Input {...register("password")} type="password" placeholder="Enter your password" />
+              <Field
+                label="Password"
+                invalid={!!errors.password}
+                errorText={errors.password?.message}
+              >
+                <Input
+                  {...register("password")}
+                  size="lg"
+                  type="password"
+                  placeholder="Create a password"
+                  variant="subtle"
+                  _dark={{
+                    bg: "gray.800",
+                    color: "white",
+                    borderColor: "transparent",
+                    _focus: { borderColor: "blue.500", bg: "gray.800" },
+                    _placeholder: { color: "gray.500" },
+                  }}
+                />
               </Field>
 
-              <Field label="Role" invalid={!!errors.role} errorText={errors.role?.message}>
-                <NativeSelect.Root>
-                  <NativeSelect.Field {...register("role")} placeholder="Select a role">
+              <Field
+                label="Role"
+                invalid={!!errors.role}
+                errorText={errors.role?.message}
+              >
+                <NativeSelect.Root size="lg" variant="subtle">
+                  <NativeSelect.Field
+                    {...register("role")}
+                    placeholder="Select a role"
+                    _dark={{
+                      bg: "gray.800",
+                      color: "white",
+                      borderColor: "transparent",
+                      _focus: { borderColor: "blue.500", bg: "gray.800" },
+                    }}
+                  >
                     <option value={UserRole.OWNER}>Vehicle Owner</option>
                     <option value={UserRole.DRIVER}>Driver</option>
-                    <option value={UserRole.ADMIN}>Admin</option>
+                    <option value={UserRole.CUSTOMER}>Customer</option>
                   </NativeSelect.Field>
                 </NativeSelect.Root>
               </Field>
 
-              <Button type="submit" loading={isLoading} width="full" colorPalette="blue">
+              <Button
+                type="submit"
+                loading={isLoading}
+                width="full"
+                size="lg"
+                colorPalette="blue"
+                fontWeight="bold"
+                mt={2}
+                _dark={{
+                  color: "white",
+                  _hover: { bg: "blue.600" },
+                }}
+              >
                 Sign Up
               </Button>
             </Stack>
           </form>
-        </Box>
-        <Text>
-          Already have an account?{" "}
-          <ChakraLink asChild colorPalette="blue">
-            <Link href="/login">Login</Link>
-          </ChakraLink>
-        </Text>
-      </Stack>
-    </Container>
+
+          <Text
+            textAlign="center"
+            fontSize="sm"
+            color="gray.500"
+            _dark={{ color: "gray.400" }}
+          >
+            Already have an account?{" "}
+            <ChakraLink asChild colorPalette="blue" fontWeight="semibold">
+              <Link href="/login">Login</Link>
+            </ChakraLink>
+          </Text>
+        </VStack>
+      </Box>
+    </Flex>
   );
 }

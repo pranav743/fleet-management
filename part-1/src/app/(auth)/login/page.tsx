@@ -7,12 +7,13 @@ import { useRouter } from "next/navigation";
 import {
   Box,
   Button,
-  Container,
   Heading,
   Input,
   Stack,
   Text,
   Link as ChakraLink,
+  Flex,
+  VStack,
 } from "@chakra-ui/react";
 import { Field } from "@/components/ui/field";
 import { loginSchema, LoginFormData } from "@/schemas/auth";
@@ -53,8 +54,7 @@ export default function LoginPage() {
           description: "Redirecting...",
           type: "success",
         });
-        
-        // Redirect to root, middleware will handle role-based redirection
+
         router.push("/");
         router.refresh();
       }
@@ -71,34 +71,122 @@ export default function LoginPage() {
   };
 
   return (
-    <Container maxW="md" py={10}>
+    <Flex
+      minH="100vh"
+      align="center"
+      justify="center"
+      bg="gray.50"
+      _dark={{ bg: "black" }} // Deepest black for high contrast background
+      p={4}
+    >
       <Toaster />
-      <Stack gap={8} align="center">
-        <Heading size="2xl">Login</Heading>
-        <Box w="full" p={8} borderWidth={1} borderRadius="lg" boxShadow="lg">
+      <Box
+        w="full"
+        maxW="md"
+        bg="white"
+        _dark={{ 
+          bg: "gray.900", // "Surface" color: slightly lighter than background
+          borderColor: "gray.800" // Subtle border in dark mode
+        }}
+        rounded="2xl"
+        shadow="xl"
+        p={{ base: 6, md: 10 }}
+        borderWidth="1px"
+        borderColor="gray.100"
+      >
+        <VStack gap={8} align="stretch">
+          <VStack gap={2} textAlign="center">
+            <Heading 
+              size="3xl" 
+              letterSpacing="tight" 
+              _dark={{ color: "white" }}
+            >
+              Welcome Back
+            </Heading>
+            <Text 
+              color="gray.500" 
+              fontSize="md"
+              _dark={{ color: "gray.400" }}
+            >
+              Enter your credentials to access your account
+            </Text>
+          </VStack>
+
           <form onSubmit={handleSubmit(onSubmit)}>
-            <Stack gap={4}>
-              <Field label="Email" invalid={!!errors.email} errorText={errors.email?.message}>
-                <Input {...register("email")} type="email" placeholder="Enter your email" />
+            <Stack gap={5}>
+              <Field
+                label="Email"
+                invalid={!!errors.email}
+                errorText={errors.email?.message}
+              >
+                <Input
+                  {...register("email")}
+                  size="lg"
+                  type="email"
+                  placeholder="name@example.com"
+                  variant="subtle"
+                  _dark={{ 
+                    bg: "gray.800", // Distinct input background
+                    color: "white",
+                    borderColor: "transparent",
+                    _focus: { borderColor: "blue.500", bg: "gray.800" },
+                    _placeholder: { color: "gray.500" }
+                  }}
+                />
               </Field>
 
-              <Field label="Password" invalid={!!errors.password} errorText={errors.password?.message}>
-                <Input {...register("password")} type="password" placeholder="Enter your password" />
+              <Field
+                label="Password"
+                invalid={!!errors.password}
+                errorText={errors.password?.message}
+              >
+                <Input
+                  {...register("password")}
+                  size="lg"
+                  type="password"
+                  placeholder="••••••••"
+                  variant="subtle"
+                  _dark={{ 
+                    bg: "gray.800",
+                    color: "white",
+                    borderColor: "transparent",
+                    _focus: { borderColor: "blue.500", bg: "gray.800" },
+                    _placeholder: { color: "gray.500" }
+                  }}
+                />
               </Field>
 
-              <Button type="submit" loading={isLoading} width="full" colorPalette="blue">
-                Login
+              <Button
+                type="submit"
+                loading={isLoading}
+                width="full"
+                size="lg"
+                colorPalette="blue"
+                fontWeight="bold"
+                mt={2}
+                _dark={{
+                    color: "white",
+                    _hover: { bg: "blue.600" }
+                }}
+              >
+                Sign in
               </Button>
             </Stack>
           </form>
-        </Box>
-        <Text>
-          Don't have an account?{" "}
-          <ChakraLink asChild colorPalette="blue">
-            <Link href="/signup">Sign up</Link>
-          </ChakraLink>
-        </Text>
-      </Stack>
-    </Container>
+
+          <Text 
+            textAlign="center" 
+            fontSize="sm" 
+            color="gray.500"
+            _dark={{ color: "gray.400" }}
+          >
+            Don&apos;t have an account?{" "}
+            <ChakraLink asChild colorPalette="blue" fontWeight="semibold">
+              <Link href="/signup">Sign up</Link>
+            </ChakraLink>
+          </Text>
+        </VStack>
+      </Box>
+    </Flex>
   );
 }

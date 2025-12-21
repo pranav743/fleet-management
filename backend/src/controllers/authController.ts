@@ -27,7 +27,7 @@ export const login = asyncWrapper(async (req: Request, res: Response, next: Next
   }
 
   const { user, accessToken, refreshToken } = await authService.login(req.body);
-
+  console.log('User logged in:', user.email);
   res.status(200).json({
     status: 'success',
     accessToken,

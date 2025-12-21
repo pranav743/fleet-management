@@ -63,3 +63,38 @@ export const getTrips = async (user: IUser) => {
   const trips = await Trip.find({ driverId: user._id }).populate('bookingId').populate('vehicleId');
   return trips;
 };
+
+export const cancelTrip = async (tripId: string) => {
+  const trip = await Trip.findById(tripId);
+  
+  if (!trip) {
+    throw new AppError('Trip not found', 404);
+  }
+
+  if (trip.isDeleted) {
+    throw new AppError('Trip is already cancelled', 400);
+  }
+
+  if (trip.status === TripStatus.COMPLETED) {
+    throw new AppError('Cannot cancel a completed trip', 400);
+  }
+
+  // If trip was started, update vehicle status back to IDLE
+  if (trip.status === TripStatus.STARTED) {
+    await Vehicle.findByIdAndUpdate(trip.vehicleId, { status: VehicleStatus.IDLE });
+  }
+
+  // Soft delete the trip
+  trip.isDeleted = true;
+  trip.deletedAt = new Date();
+  await trip.save();
+
+  // Update booking status to cancelled if it's not already completed
+  const booking = await Booking.findById(trip.bookingId);
+  if (booking && booking.status !== BookingStatus.COMPLETED) {
+    booking.status = BookingStatus.CANCELLED;
+    await booking.save();
+  }
+
+  return trip;
+};

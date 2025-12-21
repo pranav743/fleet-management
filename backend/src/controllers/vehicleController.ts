@@ -21,13 +21,14 @@ export const createVehicle = asyncWrapper(async (req: Request, res: Response, ne
 });
 
 export const getVehicles = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
-  const vehicles = await vehicleService.getVehicles(req.query, req.user!);
+  const result = await vehicleService.getVehicles(req.query, req.user!);
 
   res.status(200).json({
     status: 'success',
-    results: vehicles.length,
+    results: result.vehicles.length,
+    pagination: result.pagination,
     data: {
-      vehicles,
+      vehicles: result.vehicles,
     },
   });
 });
@@ -60,5 +61,59 @@ export const deleteVehicle = asyncWrapper(async (req: Request, res: Response, ne
   res.status(204).json({
     status: 'success',
     data: null,
+  });
+});
+
+export const registerVehicle = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
+  const { vehicleId } = req.body;
+
+  if (!vehicleId) {
+    throw new AppError('Vehicle ID is required', 400);
+  }
+
+  const vehicle = await vehicleService.registerVehicle(vehicleId, req.user!);
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Successfully registered to vehicle',
+    data: {
+      vehicle,
+    },
+  });
+});
+
+export const getRegisteredVehicle = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
+  const vehicle = await vehicleService.getRegisteredVehicle(req.user!);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      vehicle,
+    },
+  });
+});
+
+export const returnVehicle = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
+  const vehicle = await vehicleService.returnVehicle(req.user!);
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Successfully returned vehicle',
+    data: {
+      vehicle,
+    },
+  });
+});
+
+export const getAvailableVehicles = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
+  const result = await vehicleService.getAvailableVehicles(req.query);
+
+  res.status(200).json({
+    status: 'success',
+    results: result.vehicles.length,
+    pagination: result.pagination,
+    data: {
+      vehicles: result.vehicles,
+    },
   });
 });

@@ -21,13 +21,26 @@ export const createBooking = asyncWrapper(async (req: Request, res: Response, ne
 });
 
 export const getBookings = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
-  const bookings = await bookingService.getBookings(req.user!);
+  const result = await bookingService.getBookings(req.user!, req.query);
 
   res.status(200).json({
     status: 'success',
-    results: bookings.length,
+    results: result.bookings.length,
+    pagination: result.pagination,
     data: {
-      bookings,
+      bookings: result.bookings,
+    },
+  });
+});
+
+export const cancelBooking = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
+  const booking = await bookingService.cancelBooking(req.params.id, req.user!);
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Booking cancelled successfully',
+    data: {
+      booking,
     },
   });
 });

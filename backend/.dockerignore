@@ -1,0 +1,10 @@
+# Add to .gitignore if not already present
+node_modules/
+dist/
+.env
+*.log
+.DS_Store
+
+# Docker volumes (if testing locally)
+fleet-mongodb-data/
+fleet-redis-data/

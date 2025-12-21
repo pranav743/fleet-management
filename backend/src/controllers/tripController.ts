@@ -42,3 +42,15 @@ export const getTrips = asyncWrapper(async (req: Request, res: Response, next: N
     },
   });
 });
+
+export const cancelTrip = asyncWrapper(async (req: Request, res: Response, next: NextFunction) => {
+  const trip = await tripService.cancelTrip(req.params.id);
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Trip cancelled successfully',
+    data: {
+      trip,
+    },
+  });
+});
