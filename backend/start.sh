@@ -234,6 +234,8 @@ main() {
     log_info "Building and starting Docker containers..."
     docker-compose up -d --build
     log_success "Docker containers started"
+
+    sleep 5
     
     echo ""
     log_info "📋 Showing container logs (Ctrl+C to exit)..."

@@ -1,11 +1,12 @@
 import { NextAuthOptions } from "next-auth";
+import { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { UserRole } from "@/types/auth";
 
 /**
  * Refresh the access token using the refresh token
  */
-async function refreshAccessToken(token: any) {
+async function refreshAccessToken(token: JWT) {
   try {
     const res = await fetch("http://localhost:5000/api/v1/auth/refresh", {
       method: "POST",
@@ -88,8 +89,8 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-    async jwt({ token, user, trigger }) {
-      // Initial sign in
+    async jwt({ token, user }) {
+
       if (user) {
         token.id = user.id;
         token.role = user.role;
@@ -98,13 +99,10 @@ export const authOptions: NextAuthOptions = {
         // Set token expiry (assuming 15 minutes for access token)
         token.accessTokenExpires = Date.now() + 15 * 60 * 1000;
       }
-
-      // Return previous token if the access token has not expired yet
       if (Date.now() < (token.accessTokenExpires as number)) {
         return token;
       }
 
-      // Access token has expired, try to refresh it
       return refreshAccessToken(token);
     },
 
