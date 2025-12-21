@@ -1,8 +1,15 @@
-import Vehicle, { IVehicle, VehicleStatus, VehicleType } from '../models/Vehicle';
-import AppError from '../utils/AppError';
-import { IUser, UserRole } from '../models/User';
+import Vehicle, {
+  IVehicle,
+  VehicleStatus,
+  VehicleType,
+} from "../models/Vehicle";
+import AppError from "../utils/AppError";
+import { IUser, UserRole } from "../models/User";
 
-export const createVehicle = async (vehicleData: Partial<IVehicle>, user: IUser) => {
+export const createVehicle = async (
+  vehicleData: Partial<IVehicle>,
+  user: IUser
+) => {
   const vehicle = await Vehicle.create({
     ...vehicleData,
     ownerId: user._id,
@@ -14,46 +21,59 @@ export const getVehicles = async (query: any, user: IUser) => {
   const page = parseInt(query.page as string) || 1;
   const limit = parseInt(query.limit as string) || 10;
   const skip = (page - 1) * limit;
-  const sortBy = query.sortBy || 'createdAt';
-  const order = query.order === 'asc' ? 1 : -1;
+  const sortBy = query.sortBy || "createdAt";
+  const order = query.order === "asc" ? 1 : -1;
 
   const filter: any = {};
 
   if (user.role === UserRole.OWNER) {
     filter.ownerId = user._id;
   } else if (user.role === UserRole.DRIVER) {
-    filter.status = VehicleStatus.IDLE; 
+    filter.status = VehicleStatus.IDLE;
   }
 
-  if (query.status) {
-    filter.status = query.status;
+  if (user.role !== UserRole.CUSTOMER) {
+    if (query.status) {
+      filter.status = query.status;
+    }
+
+    if (query.type) {
+      filter.type = query.type;
+    }
+
+    if (query.make) {
+      filter.make = { $regex: query.make, $options: "i" };
+    }
+
+    if (query.model) {
+      filter.vehicleModel = { $regex: query.model, $options: "i" };
+    }
+
+    if (query.registrationNumber) {
+      filter.registrationNumber = {
+        $regex: query.registrationNumber,
+        $options: "i",
+      };
+    }
+
+    if (query.year) {
+      filter.year = parseInt(query.year);
+    }
   }
 
-  if (query.type) {
-    filter.type = query.type;
-  }
-
-  if (query.make) {
-    filter.make = { $regex: query.make, $options: 'i' };
-  }
-
-  if (query.model) {
-    filter.vehicleModel = { $regex: query.model, $options: 'i' };
-  }
-
-  if (query.registrationNumber) {
-    filter.registrationNumber = { $regex: query.registrationNumber, $options: 'i' };
-  }
-
-  if (query.year) {
-    filter.year = parseInt(query.year);
+  if (user.role === UserRole.CUSTOMER) {
+    Object.keys(filter).forEach((key) => delete filter[key]);
+    filter.$and = [
+      { driverId: { $exists: true, $type: "objectId" } },
+      { status: VehicleStatus.IDLE }
+    ];
   }
 
   const totalItems = await Vehicle.countDocuments(filter);
-  
+
   const sortField: any = {};
   sortField[sortBy] = order;
-  
+
   const vehicles = await Vehicle.find(filter)
     .sort(sortField)
     .skip(skip)
@@ -76,25 +96,38 @@ export const getVehicleById = async (id: string, user: IUser) => {
   const vehicle = await Vehicle.findById(id);
 
   if (!vehicle) {
-    throw new AppError('Vehicle not found', 404);
+    throw new AppError("Vehicle not found", 404);
   }
 
-  if (user.role === UserRole.OWNER && vehicle.ownerId.toString() !== user._id.toString()) {
-    throw new AppError('You do not have permission to view this vehicle', 403);
+  if (
+    user.role === UserRole.OWNER &&
+    vehicle.ownerId.toString() !== user._id.toString()
+  ) {
+    throw new AppError("You do not have permission to view this vehicle", 403);
   }
 
   return vehicle;
 };
 
-export const updateVehicle = async (id: string, updateData: Partial<IVehicle>, user: IUser) => {
+export const updateVehicle = async (
+  id: string,
+  updateData: Partial<IVehicle>,
+  user: IUser
+) => {
   const vehicle = await Vehicle.findById(id);
 
   if (!vehicle) {
-    throw new AppError('Vehicle not found', 404);
+    throw new AppError("Vehicle not found", 404);
   }
 
-  if (user.role === UserRole.OWNER && vehicle.ownerId.toString() !== user._id.toString()) {
-    throw new AppError('You do not have permission to update this vehicle', 403);
+  if (
+    user.role === UserRole.OWNER &&
+    vehicle.ownerId.toString() !== user._id.toString()
+  ) {
+    throw new AppError(
+      "You do not have permission to update this vehicle",
+      403
+    );
   }
 
   Object.assign(vehicle, updateData);
@@ -107,17 +140,23 @@ export const deleteVehicle = async (id: string, user: IUser) => {
   const vehicle = await Vehicle.findById(id);
 
   if (!vehicle) {
-    throw new AppError('Vehicle not found', 404);
+    throw new AppError("Vehicle not found", 404);
   }
 
-  if (user.role === UserRole.OWNER && vehicle.ownerId.toString() !== user._id.toString()) {
-    throw new AppError('You do not have permission to delete this vehicle', 403);
+  if (
+    user.role === UserRole.OWNER &&
+    vehicle.ownerId.toString() !== user._id.toString()
+  ) {
+    throw new AppError(
+      "You do not have permission to delete this vehicle",
+      403
+    );
   }
 
-  const Booking = (await import('../models/Booking')).default;
-  const { BookingStatus } = await import('../models/Booking');
-  const Trip = (await import('../models/Trip')).default;
-  const { TripStatus } = await import('../models/Trip');
+  const Booking = (await import("../models/Booking")).default;
+  const { BookingStatus } = await import("../models/Booking");
+  const Trip = (await import("../models/Trip")).default;
+  const { TripStatus } = await import("../models/Trip");
 
   const activeBooking = await Booking.findOne({
     vehicleId: vehicle._id,
@@ -125,7 +164,10 @@ export const deleteVehicle = async (id: string, user: IUser) => {
   });
 
   if (activeBooking) {
-    throw new AppError('Cannot delete vehicle with active bookings. Please cancel all bookings first.', 400);
+    throw new AppError(
+      "Cannot delete vehicle with active bookings. Please cancel all bookings first.",
+      400
+    );
   }
 
   const activeTrip = await Trip.findOne({
@@ -134,7 +176,10 @@ export const deleteVehicle = async (id: string, user: IUser) => {
   });
 
   if (activeTrip) {
-    throw new AppError('Cannot delete vehicle with active trips. Please complete all trips first.', 400);
+    throw new AppError(
+      "Cannot delete vehicle with active trips. Please complete all trips first.",
+      400
+    );
   }
 
   vehicle.isDeleted = true;
@@ -145,25 +190,28 @@ export const deleteVehicle = async (id: string, user: IUser) => {
 export const registerVehicle = async (vehicleId: string, user: IUser) => {
   // Check if driver already has a registered vehicle
   const existingRegistration = await Vehicle.findOne({ driverId: user._id });
-  
+
   if (existingRegistration) {
-    throw new AppError('You are already registered to a vehicle. Please return it first before registering a new one.', 400);
+    throw new AppError(
+      "You are already registered to a vehicle. Please return it first before registering a new one.",
+      400
+    );
   }
 
   // Find the vehicle
   const vehicle = await Vehicle.findById(vehicleId);
 
   if (!vehicle) {
-    throw new AppError('Vehicle not found', 404);
+    throw new AppError("Vehicle not found", 404);
   }
 
   // Check if vehicle is available (IDLE and no driver assigned)
   if (vehicle.status !== VehicleStatus.IDLE) {
-    throw new AppError('Vehicle is not available for registration', 400);
+    throw new AppError("Vehicle is not available for registration", 400);
   }
 
   if (vehicle.driverId) {
-    throw new AppError('Vehicle is already registered to another driver', 400);
+    throw new AppError("Vehicle is already registered to another driver", 400);
   }
 
   // Register the driver to the vehicle
@@ -174,11 +222,13 @@ export const registerVehicle = async (vehicleId: string, user: IUser) => {
 };
 
 export const getRegisteredVehicle = async (user: IUser) => {
-  const vehicle = await Vehicle.findOne({ driverId: user._id })
-    .populate('ownerId', 'email role');
+  const vehicle = await Vehicle.findOne({ driverId: user._id }).populate(
+    "ownerId",
+    "email role"
+  );
 
   if (!vehicle) {
-    throw new AppError('You do not have any registered vehicle', 404);
+    throw new AppError("You do not have any registered vehicle", 404);
   }
 
   return vehicle;
@@ -189,21 +239,24 @@ export const returnVehicle = async (user: IUser) => {
   const vehicle = await Vehicle.findOne({ driverId: user._id });
 
   if (!vehicle) {
-    throw new AppError('You do not have any registered vehicle', 404);
+    throw new AppError("You do not have any registered vehicle", 404);
   }
 
   // Check if there are any active trips for this vehicle
-  const Trip = (await import('../models/Trip')).default;
-  const { TripStatus } = await import('../models/Trip');
-  
+  const Trip = (await import("../models/Trip")).default;
+  const { TripStatus } = await import("../models/Trip");
+
   const activeTrip = await Trip.findOne({
     vehicleId: vehicle._id,
     driverId: user._id,
-    status: { $in: [TripStatus.ASSIGNED, TripStatus.STARTED] }
+    status: { $in: [TripStatus.ASSIGNED, TripStatus.STARTED] },
   });
 
   if (activeTrip) {
-    throw new AppError('Cannot return vehicle with active trips. Please complete all trips first.', 400);
+    throw new AppError(
+      "Cannot return vehicle with active trips. Please complete all trips first.",
+      400
+    );
   }
 
   // Unregister the driver from the vehicle
@@ -217,30 +270,38 @@ export const getAvailableVehicles = async (query: any) => {
   const page = parseInt(query.page as string) || 1;
   const limit = parseInt(query.limit as string) || 10;
   const skip = (page - 1) * limit;
-  const sortBy = query.sortBy || 'createdAt';
-  const order = query.order === 'asc' ? 1 : -1;
-  const { startDate, endDate, type, status, make, model, registrationNumber, year } = query;
-  
-  const filter: any = {};
-  
+  const sortBy = query.sortBy || "createdAt";
+  const order = query.order === "asc" ? 1 : -1;
+  const {
+    startDate,
+    endDate,
+    type,
+    status,
+    make,
+    model,
+    registrationNumber,
+    year,
+  } = query;
+
+  const filter: any = {
+    driverId: { $ne: null },
+    status: VehicleStatus.IDLE,
+  };
+
   if (type) {
     filter.type = type;
   }
-  
-  if (status) {
-    filter.status = status;
-  }
 
   if (make) {
-    filter.make = { $regex: make, $options: 'i' };
+    filter.make = { $regex: make, $options: "i" };
   }
 
   if (model) {
-    filter.vehicleModel = { $regex: model, $options: 'i' };
+    filter.vehicleModel = { $regex: model, $options: "i" };
   }
 
   if (registrationNumber) {
-    filter.registrationNumber = { $regex: registrationNumber, $options: 'i' };
+    filter.registrationNumber = { $regex: registrationNumber, $options: "i" };
   }
 
   if (year) {
@@ -248,13 +309,13 @@ export const getAvailableVehicles = async (query: any) => {
   }
 
   const totalItems = await Vehicle.countDocuments(filter);
-  
+
   const sortField: any = {};
   sortField[sortBy] = order;
 
   const vehicles = await Vehicle.find(filter)
-    .populate('ownerId', 'email role')
-    .populate('driverId', 'email role')
+    .populate("ownerId", "email role")
+    .populate("driverId", "email role")
     .sort(sortField)
     .skip(skip)
     .limit(limit);
@@ -262,7 +323,8 @@ export const getAvailableVehicles = async (query: any) => {
   if (!startDate || !endDate) {
     const vehiclesWithAvailability = vehicles.map((vehicle: any) => ({
       ...vehicle.toObject(),
-      availableForBooking: !!vehicle.driverId && vehicle.status === VehicleStatus.IDLE,
+      availableForBooking:
+        !!vehicle.driverId && vehicle.status === VehicleStatus.IDLE,
     }));
 
     return {
@@ -278,8 +340,8 @@ export const getAvailableVehicles = async (query: any) => {
     };
   }
 
-  const Booking = (await import('../models/Booking')).default;
-  const { BookingStatus } = await import('../models/Booking');
+  const Booking = (await import("../models/Booking")).default;
+  const { BookingStatus } = await import("../models/Booking");
 
   const vehiclesWithAvailability = await Promise.all(
     vehicles.map(async (vehicle: any) => {
@@ -294,7 +356,10 @@ export const getAvailableVehicles = async (query: any) => {
         vehicleId: vehicle._id,
         status: { $ne: BookingStatus.CANCELLED },
         $or: [
-          { startDate: { $lt: new Date(endDate) }, endDate: { $gt: new Date(startDate) } },
+          {
+            startDate: { $lt: new Date(endDate) },
+            endDate: { $gt: new Date(startDate) },
+          },
         ],
       });
 

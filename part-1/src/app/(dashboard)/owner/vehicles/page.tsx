@@ -10,6 +10,7 @@ import { api } from "@/lib/api-client";
 import { Vehicle } from "@/types/api";
 import { toaster } from "@/components/ui/toaster";
 import { vehicleSchema, VehicleFormData } from "@/schemas/vehicle";
+import { getRandomVehicleImage } from "@/constants/vehicle-images";
 import {
   DialogRoot,
   DialogContent,
@@ -296,7 +297,7 @@ export default function OwnerVehiclesPage() {
               overflow="hidden"
               bg="bg.panel"
             >
-              <Image src="https://placehold.co/600x400" alt={vehicle.make} objectFit="cover" h="200px" w="full" />
+              <Image src={getRandomVehicleImage()} alt={vehicle.make} objectFit="cover" h="200px" w="full" />
               <Box p={4}>
                 <Stack direction="row" justify="space-between" align="center" mb={2}>
                   <Heading size="md">{vehicle.make} {vehicle.vehicleModel}</Heading>

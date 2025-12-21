@@ -2,6 +2,42 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { UserRole } from "@/types/auth";
 
+/**
+ * Refresh the access token using the refresh token
+ */
+async function refreshAccessToken(token: any) {
+  try {
+    const res = await fetch("http://localhost:5000/api/v1/auth/refresh", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        refreshToken: token.refreshToken,
+      }),
+    });
+
+    const refreshedTokens = await res.json();
+
+    if (!res.ok) {
+      throw refreshedTokens;
+    }
+
+    return {
+      ...token,
+      accessToken: refreshedTokens.accessToken,
+      refreshToken: refreshedTokens.refreshToken ?? token.refreshToken,
+      accessTokenExpires: Date.now() + 15 * 60 * 1000, // 15 minutes
+    };
+  } catch (error) {
+    console.error("Error refreshing access token:", error);
+    return {
+      ...token,
+      error: "RefreshAccessTokenError",
+    };
+  }
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -52,14 +88,24 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
+      // Initial sign in
       if (user) {
         token.id = user.id;
         token.role = user.role;
         token.accessToken = user.accessToken;
         token.refreshToken = user.refreshToken;
+        // Set token expiry (assuming 15 minutes for access token)
+        token.accessTokenExpires = Date.now() + 15 * 60 * 1000;
       }
-      return token;
+
+      // Return previous token if the access token has not expired yet
+      if (Date.now() < (token.accessTokenExpires as number)) {
+        return token;
+      }
+
+      // Access token has expired, try to refresh it
+      return refreshAccessToken(token);
     },
 
     async session({ session, token }) {
@@ -70,6 +116,7 @@ export const authOptions: NextAuthOptions = {
 
       // expose access token if needed
       session.accessToken = token.accessToken as string;
+      session.error = token.error as string | undefined;
 
       return session;
     },

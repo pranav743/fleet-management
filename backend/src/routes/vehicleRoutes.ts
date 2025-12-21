@@ -8,7 +8,6 @@ const router = express.Router();
 
 router.use(protect);
 
-// Public route for checking vehicle availability
 router.route('/available').get(vehicleController.getAvailableVehicles);
 
 router

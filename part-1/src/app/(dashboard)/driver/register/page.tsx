@@ -19,6 +19,7 @@ import { useSession } from "next-auth/react";
 import { api } from "@/lib/api-client";
 import { Vehicle } from "@/types/api";
 import { toaster } from "@/components/ui/toaster";
+import { getRandomVehicleImage } from "@/constants/vehicle-images";
 
 export default function OwnerVehiclesPage() {
   const { data: session } = useSession();
@@ -287,7 +288,7 @@ export default function OwnerVehiclesPage() {
               bg="bg.panel"
             >
               <Image
-                src="https://placehold.co/600x400"
+                src={getRandomVehicleImage()}
                 alt={vehicle.make}
                 objectFit="cover"
                 h="200px"

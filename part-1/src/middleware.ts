@@ -7,7 +7,6 @@ export default withAuth(
     const { token } = req.nextauth;
     const { pathname } = req.nextUrl;
 
-    // Redirect if user tries to access a route not allowed for their role
     if (pathname.startsWith("/owner") && token?.role !== UserRole.OWNER) {
       return NextResponse.redirect(new URL("/login", req.url));
     }
@@ -18,7 +17,6 @@ export default withAuth(
       return NextResponse.redirect(new URL("/login", req.url));
     }
 
-    // Redirect authenticated users from root to their dashboard
     if (pathname === "/" && token) {
       if (token.role === UserRole.OWNER) {
         return NextResponse.redirect(new URL("/owner", req.url));

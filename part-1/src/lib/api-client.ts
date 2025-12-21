@@ -68,12 +68,14 @@ export const api = {
   vehicles: {
     getAll: (token: string, status?: string) => 
       fetchWithAuth(`/vehicles${status ? `?status=${status}` : ""}`, token),
-    getAvailable: (token: string, params?: { startDate?: string; endDate?: string; type?: string; status?: string }) => {
+    getAvailable: (token: string, params?: { startDate?: string; endDate?: string; type?: string; status?: string; page?: number; limit?: number }) => {
       const queryParams = new URLSearchParams();
       if (params?.startDate) queryParams.append('startDate', params.startDate);
       if (params?.endDate) queryParams.append('endDate', params.endDate);
       if (params?.type) queryParams.append('type', params.type);
       if (params?.status) queryParams.append('status', params.status);
+      if (params?.page) queryParams.append('page', params.page.toString());
+      if (params?.limit) queryParams.append('limit', params.limit.toString());
       const queryString = queryParams.toString();
       return fetchWithAuth(`/vehicles/available${queryString ? `?${queryString}` : ''}`, token);
     },
