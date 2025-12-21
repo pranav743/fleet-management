@@ -23,6 +23,13 @@ All automatically created user accounts have the password: `password`
 - **Redis** (running on default port 6379)
 - **Docker** (for Part-1 and Part-2)
 
+## Admin Portal Screenshots
+<img width="2940" height="1596" alt="image" src="https://github.com/user-attachments/assets/04cfd48d-a619-46ba-a82e-a8c2ce803e92" />
+<img width="2940" height="1592" alt="image" src="https://github.com/user-attachments/assets/6224b729-2238-4432-8b24-4bbf123b64cf" />
+<img width="2940" height="1596" alt="image" src="https://github.com/user-attachments/assets/8f5f15e4-519d-4371-a2ff-949fb32e8159" />
+<img width="2940" height="1590" alt="image" src="https://github.com/user-attachments/assets/aaec64f0-4e2f-479f-abe5-0c60a0eab6ae" />
+<img width="2940" height="1596" alt="image" src="https://github.com/user-attachments/assets/73c74b9a-452b-416f-b7b2-7cbec0665ff9" />
+
 ### Steps to Start
 
 1. **Start MongoDB and Redis**
@@ -307,10 +314,3 @@ All automatically created user accounts have the password: `password`
 
 ---
 
-## Admin Portal Screenshots
-
-![Screenshot 1](screenshots/Screenshot%202025-12-21%20at%2010.09.34%20PM.png)
-![Screenshot 2](screenshots/Screenshot%202025-12-21%20at%2010.09.57%20PM.png)
-![Screenshot 3](screenshots/Screenshot%202025-12-21%20at%2010.11.01%20PM.png)
-![Screenshot 4](screenshots/Screenshot%202025-12-21%20at%2010.11.26%20PM.png)
-![Screenshot 5](screenshots/Screenshot%202025-12-21%20at%2010.11.43%20PM.png)
