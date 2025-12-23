@@ -7,6 +7,18 @@ export default withAuth(
     const { token } = req.nextauth;
     const { pathname } = req.nextUrl;
 
+    console.log("Middleware accessed for path:", pathname);
+    if (pathname === "/") {
+      return NextResponse.next();
+    }
+    if (pathname === "/login" || pathname === "/register") {
+      if (token) {
+        console.log("User already authenticated, redirecting to dashboard");
+        return NextResponse.redirect(new URL("/dashboard", req.url));
+      }
+      return NextResponse.next();
+    }
+
     if (pathname.startsWith("/owner") && token?.role !== UserRole.OWNER) {
       return NextResponse.redirect(new URL("/login", req.url));
     }
@@ -16,26 +28,24 @@ export default withAuth(
     if (pathname.startsWith("/customer") && token?.role !== UserRole.CUSTOMER) {
       return NextResponse.redirect(new URL("/login", req.url));
     }
-
-    if (pathname === "/" && token) {
-      if (token.role === UserRole.OWNER) {
-        return NextResponse.redirect(new URL("/owner", req.url));
-      }
-      if (token.role === UserRole.DRIVER) {
-        return NextResponse.redirect(new URL("/driver", req.url));
-      }
-      if (token.role === UserRole.CUSTOMER) {
-        return NextResponse.redirect(new URL("/customer", req.url));
-      }
-    }
   },
   {
     callbacks: {
-      authorized: ({ token }) => !!token,
+      authorized: ({ token, req }) => {
+        const { pathname } = req.nextUrl;
+        
+        // Allow unauthenticated access to home, login, and register pages
+        if (pathname === "/" || pathname === "/login" || pathname === "/register") {
+          return true;
+        }
+        
+        // All other routes require authentication
+        return !!token;
+      },
     },
   }
 );
 
 export const config = {
-  matcher: ["/owner/:path*", "/driver/:path*", "/customer/:path*", "/dashboard"],
+  matcher: ["/", "/login", "/owner/:path*", "/driver/:path*", "/customer/:path*", "/dashboard"],
 };

@@ -55,7 +55,7 @@ export default function LoginPage() {
           type: "success",
         });
 
-        router.push("/");
+        router.push("/dashboard");
         router.refresh();
       }
     } catch (error) {

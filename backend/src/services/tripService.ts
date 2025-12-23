@@ -3,6 +3,8 @@ import Booking, { BookingStatus } from '../models/Booking';
 import Vehicle, { VehicleStatus } from '../models/Vehicle';
 import AppError from '../utils/AppError';
 import { IUser } from '../models/User';
+import User from '../models/User';
+import * as emailService from './emailService';
 
 export const createTrip = async (bookingId: string, driverId: string) => {
   const booking = await Booking.findById(bookingId);
@@ -49,10 +51,24 @@ export const updateTripStatus = async (tripId: string, status: TripStatus, user:
     trip.endTime = new Date();
 
     // Update vehicle status
-    await Vehicle.findByIdAndUpdate(trip.vehicleId, { status: VehicleStatus.IDLE });
+    const vehicle = await Vehicle.findByIdAndUpdate(trip.vehicleId, { status: VehicleStatus.IDLE });
     
     // Update booking status
-    await Booking.findByIdAndUpdate(trip.bookingId, { status: BookingStatus.COMPLETED });
+    const booking = await Booking.findByIdAndUpdate(trip.bookingId, { status: BookingStatus.COMPLETED });
+    
+    if (booking && vehicle) {
+      const customer = await User.findById(booking.customerId);
+      if (customer) {
+        emailService.sendTripCompletionEmail(customer.email, {
+          tripId: trip._id.toString(),
+          vehicleInfo: `${vehicle.make} ${vehicle.model} (${vehicle.registrationNumber})`,
+          startTime: trip.startTime!,
+          endTime: trip.endTime!,
+          startOdometer: trip.startOdometer!,
+          endOdometer: trip.endOdometer!,
+        });
+      }
+    }
   }
 
   await trip.save();
@@ -94,6 +110,17 @@ export const cancelTrip = async (tripId: string) => {
   if (booking && booking.status !== BookingStatus.COMPLETED) {
     booking.status = BookingStatus.CANCELLED;
     await booking.save();
+    
+    const vehicle = await Vehicle.findById(trip.vehicleId);
+    const customer = await User.findById(booking.customerId);
+    
+    if (customer && vehicle) {
+      emailService.sendTripCancellationEmail(customer.email, {
+        tripId: trip._id.toString(),
+        vehicleInfo: `${vehicle.make} ${vehicle.model} (${vehicle.registrationNumber})`,
+        bookingId: booking._id.toString(),
+      });
+    }
   }
 
   return trip;

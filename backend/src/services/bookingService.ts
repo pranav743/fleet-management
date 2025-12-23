@@ -2,6 +2,8 @@ import Booking, { IBooking, BookingStatus } from '../models/Booking';
 import Vehicle, { VehicleStatus } from '../models/Vehicle';
 import AppError from '../utils/AppError';
 import { IUser } from '../models/User';
+import User from '../models/User';
+import * as emailService from './emailService';
 
 export const createBooking = async (bookingData: Partial<IBooking>, user: IUser) => {
   const { vehicleId, startDate, endDate } = bookingData;
@@ -53,6 +55,14 @@ export const createBooking = async (bookingData: Partial<IBooking>, user: IUser)
     driverId: vehicle.driverId,
     vehicleId: vehicle._id,
     status: TripStatus.ASSIGNED,
+  });
+
+  emailService.sendBookingConfirmationEmail(user.email, {
+    bookingId: booking._id.toString(),
+    vehicleInfo: `${vehicle.make} ${vehicle.model} (${vehicle.registrationNumber})`,
+    startDate: booking.startDate,
+    endDate: booking.endDate,
+    totalCost: booking.totalCost,
   });
 
   return booking;

@@ -15,23 +15,19 @@ export const getDashboardStats = async (user: IUser) => {
     return getDriverAnalytics(user);
   }
 
-  // Admin analytics (backward compatible)
-  // Total Revenue
+  // Admin analytics
   const revenueStats = await Booking.aggregate([
     { $match: { status: { $ne: BookingStatus.CANCELLED } } },
     { $group: { _id: null, totalRevenue: { $sum: '$totalCost' } } },
   ]);
   const totalRevenue = revenueStats.length > 0 ? revenueStats[0].totalRevenue : 0;
 
-  // Active Trips
   const activeTrips = await Trip.countDocuments({ status: TripStatus.STARTED });
 
-  // Vehicle Utilization
   const totalVehicles = await Vehicle.countDocuments();
   const activeVehicles = await Vehicle.countDocuments({ status: { $ne: VehicleStatus.IDLE } });
   const utilizationRate = totalVehicles > 0 ? (activeVehicles / totalVehicles) * 100 : 0;
 
-  // Additional Stats (Optional)
   const totalBookings = await Booking.countDocuments({ status: { $ne: BookingStatus.CANCELLED } });
   const completedTrips = await Trip.countDocuments({ status: TripStatus.COMPLETED });
 
